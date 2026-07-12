@@ -44,17 +44,15 @@ extension TrioRemoteControl {
             ), key: "date", ascending: false
         )
 
-        await taskContext.perform {
-            guard let recentCarbEntries = results as? [CarbEntryStored] else { return }
-            if !recentCarbEntries.isEmpty {
-                Task {
-                    await self.logError(
-                        "Command rejected: newer carb entries have been logged since the command was sent.",
-                        payload: payload
-                    )
-                    return
-                }
-            }
+        let hasNewerCarbEntries = await taskContext.perform {
+            (results as? [CarbEntryStored])?.isEmpty == false
+        }
+        if hasNewerCarbEntries {
+            await logError(
+                "Command rejected: newer carb entries have been logged since the command was sent.",
+                payload: payload
+            )
+            return
         }
 
         let actualDate = payload.scheduledTime.map { Date(timeIntervalSince1970: $0) }
