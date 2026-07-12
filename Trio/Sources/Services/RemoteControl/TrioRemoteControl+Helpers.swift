@@ -19,8 +19,17 @@ extension TrioRemoteControl {
         await nightscoutManager.uploadNoteTreatment(note: note)
     }
 
-    func logSuccess(_ message: String, payload: CommandPayload, customNotificationMessage: String? = nil) async {
+    func logSuccess(
+        _ message: String,
+        payload: CommandPayload,
+        customNotificationMessage: String? = nil,
+        uploadNote: Bool = false
+    ) async {
         debug(.remoteControl, message)
+
+        if uploadNote {
+            await nightscoutManager.uploadNoteTreatment(note: message)
+        }
 
         if let returnInfo = payload.returnNotification {
             await RemoteNotificationResponseManager.shared.sendResponseNotification(
