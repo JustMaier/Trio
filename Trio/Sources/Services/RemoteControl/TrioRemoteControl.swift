@@ -79,10 +79,9 @@ class TrioRemoteControl: Injectable {
         case .cancelTempTarget:
             await cancelTempTarget(commandPayload)
         case .meal:
+            // `handleMealCommand` stores the meal and, only if it stored successfully, enacts any explicit
+            // bolus, so a meal that was rejected during validation never triggers a bolus.
             try await handleMealCommand(commandPayload)
-            if commandPayload.bolusAmount != nil {
-                try await handleBolusCommand(commandPayload)
-            }
         case .startOverride:
             await handleStartOverrideCommand(commandPayload)
         case .cancelOverride:

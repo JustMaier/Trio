@@ -66,12 +66,17 @@ extension TrioRemoteControl {
 
         try await carbsStorage.storeCarbs([mealEntry], areFetchedFromRemote: false)
 
-        if payload.bolusAmount == nil {
-            await logSuccess(
-                "Remote command processed successfully. \(payload.humanReadableDescription())",
-                payload: payload,
-                customNotificationMessage: "Meal logged"
-            )
+        // Only enact the meal's explicit bolus once the meal itself has been stored, so a meal that was
+        // rejected during validation never triggers a bolus.
+        if payload.bolusAmount != nil {
+            try await handleBolusCommand(payload)
+            return
         }
+
+        await logSuccess(
+            "Remote command processed successfully. \(payload.humanReadableDescription())",
+            payload: payload,
+            customNotificationMessage: "Meal logged"
+        )
     }
 }
