@@ -49,6 +49,16 @@ extension RemoteControlConfig {
                 )
 
                 Section(
+                    header: Text("Automatic Bolus"),
+                    footer: Text(
+                        "When enabled, a remote meal that requests Trio's recommended bolus is dosed using Trio's own bolus calculator and safety limits. The bolus is only given when the meal is timed for now; meals scheduled for the future or backdated into the past are stored without bolusing. Default: OFF."
+                    ),
+                    content: {
+                        Toggle("Auto-bolus for Remote Meals", isOn: $state.isRemoteMealAutoBolusEnabled)
+                    }
+                ).listRowBackground(Color.chart)
+
+                Section(
                     header: Text("Shared Secret"),
                     content: {
                         TextField("Enter Shared Secret", text: $state.sharedSecret)

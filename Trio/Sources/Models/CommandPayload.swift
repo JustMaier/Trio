@@ -20,6 +20,7 @@ struct CommandPayload: Decodable, Sendable {
     var fat: Int?
     var overrideName: String?
     var scheduledTime: TimeInterval?
+    var useRecommendedBolus: Bool?
     var returnNotification: ReturnNotificationInfo?
 
     struct ReturnNotificationInfo: Decodable, Sendable {
@@ -52,6 +53,7 @@ struct CommandPayload: Decodable, Sendable {
         case commandType = "command_type"
         case bolusAmount = "bolus_amount"
         case scheduledTime = "scheduled_time"
+        case useRecommendedBolus = "use_recommended_bolus"
         case returnNotification = "return_notification"
     }
 
@@ -80,6 +82,9 @@ struct CommandPayload: Decodable, Sendable {
             let fatDesc = fat != nil ? "\(fat!)g fat" : "unknown fat"
             let proteinDesc = protein != nil ? "\(protein!)g protein" : "unknown protein"
             description += "Meal with \(carbsDesc), \(fatDesc), \(proteinDesc)."
+            if useRecommendedBolus == true {
+                description += " Auto-bolus: recommended."
+            }
         case .startOverride:
             if let override = overrideName {
                 description += "Start Override: \(override)."
