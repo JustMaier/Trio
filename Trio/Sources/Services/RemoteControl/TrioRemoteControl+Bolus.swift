@@ -8,8 +8,23 @@ extension TrioRemoteControl {
             return
         }
 
+        try await enactValidatedBolus(
+            amount: bolusAmount,
+            payload: payload,
+            successNotificationMessage: "Bolus started"
+        )
+    }
+
+    /// Runs a bolus amount through the shared safety checks and, if allowed, enacts it. Used both for an
+    /// explicit remote bolus amount and for the auto-computed recommended bolus of a remote meal, so both
+    /// go through the same `BolusSafetyValidator`, `enactBolus`, logging, and return-notification path.
+    func enactValidatedBolus(
+        amount: Decimal,
+        payload: CommandPayload,
+        successNotificationMessage: String
+    ) async throws {
         let validation = try await bolusSafetyValidator.validate(
-            bolusAmount: bolusAmount,
+            bolusAmount: amount,
             lookbackStart: Date(timeIntervalSince1970: payload.timestamp)
         )
 
@@ -17,11 +32,11 @@ extension TrioRemoteControl {
         case .allowed:
             break
         case let .rejected(reason):
-            await logError(reason.remoteCommandMessage(bolusAmount: bolusAmount), payload: payload)
+            await logError(reason.remoteCommandMessage(bolusAmount: amount), payload: payload)
             return
         }
 
-        debug(.remoteControl, "Enacting bolus command with amount: \(bolusAmount) units.")
+        debug(.remoteControl, "Enacting bolus command with amount: \(amount) units.")
 
         guard let apsManager = await TrioApp.resolver.resolve(APSManager.self) else {
             await logError(
@@ -41,14 +56,14 @@ extension TrioRemoteControl {
         }
 
         await apsManager
-            .enactBolus(amount: Double(truncating: bolusAmount as NSNumber), isSMB: false) { [weak self] success, message in
+            .enactBolus(amount: Double(truncating: amount as NSNumber), isSMB: false) { [weak self] success, message in
                 guard let self = self else { return }
                 Task {
                     if success {
                         await self.logSuccess(
                             "Remote command processed successfully. \(payload.humanReadableDescription())",
                             payload: payload,
-                            customNotificationMessage: "Bolus started"
+                            customNotificationMessage: successNotificationMessage
                         )
                     } else {
                         await self.logError(
