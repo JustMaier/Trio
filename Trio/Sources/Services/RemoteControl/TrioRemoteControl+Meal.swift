@@ -92,6 +92,19 @@ extension TrioRemoteControl {
             // caregiver is told what happened rather than shown a failure.
             await logSuccess(reason, payload: payload, customNotificationMessage: reason, uploadNote: true)
 
+        case let .advise(amount):
+            // The meal was stored; the bolus is left for the caregiver to review and confirm in Loop Follow.
+            // Report success with the amount both as human-readable text and as a structured field, and record
+            // a Nightscout note, but do not enact any insulin here.
+            let message = "Recommended bolus: \(amount) U for \(carbsDecimal ?? 0) g. Review and confirm in Loop Follow."
+            await logSuccess(
+                message,
+                payload: payload,
+                customNotificationMessage: message,
+                uploadNote: true,
+                recommendedBolus: amount
+            )
+
         case let .recommended(amount):
             do {
                 try await enactValidatedBolus(
@@ -118,6 +131,9 @@ extension TrioRemoteControl {
         case reject(String)
         /// The meal is stored but no auto-bolus is given for a benign reason; surfaced as success.
         case skip(String)
+        /// The meal is stored and this auto-computed amount is sent back to Loop Follow for the caregiver to
+        /// review and confirm. Trio does not enact it.
+        case advise(Decimal)
         /// Enact this auto-computed, safety-clamped recommended amount.
         case recommended(Decimal)
     }
@@ -157,9 +173,10 @@ extension TrioRemoteControl {
             return .none
         }
 
-        guard UserDefaults.standard.bool(forKey: "isRemoteMealAutoBolusEnabled") else {
+        let mode = RemoteMealBolusMode.current()
+        guard mode != .off else {
             return .skip(
-                "The meal was logged. Auto-bolus was not given because \"Auto-bolus for Remote Meals\" is disabled in Trio's Remote Control settings."
+                "The meal was logged. No bolus was given because Remote Meal Bolus is set to Off in Trio's Remote Control settings."
             )
         }
 
@@ -211,6 +228,8 @@ extension TrioRemoteControl {
             )
         }
 
-        return .recommended(recommendedBolus)
+        // In Require Review mode the amount is sent back for the caregiver to confirm in Loop Follow rather
+        // than enacted here.
+        return mode == .requireReview ? .advise(recommendedBolus) : .recommended(recommendedBolus)
     }
 }

@@ -49,12 +49,17 @@ extension RemoteControlConfig {
                 )
 
                 Section(
-                    header: Text("Automatic Bolus"),
+                    header: Text("Remote Meal Bolus"),
                     footer: Text(
-                        "When enabled, a remote meal that requests Trio's recommended bolus is dosed using Trio's own bolus calculator and safety limits. The bolus is only given when the meal is timed for now; meals scheduled for the future or backdated into the past are stored without bolusing. Default: OFF."
+                        "Choose how Trio handles a remote meal that requests its recommended bolus.\n\nOff: the meal is logged without any bolus.\n\nRequire Review: Trio calculates the bolus and sends it back to Loop Follow for you to review and confirm; Trio does not dose on its own.\n\nAuto: Trio calculates and delivers the bolus using its own bolus calculator and safety limits.\n\nThe recommended bolus is only offered when the meal is timed for now; meals scheduled for the future or backdated into the past are stored without bolusing. Default: OFF."
                     ),
                     content: {
-                        Toggle("Auto-bolus for Remote Meals", isOn: $state.isRemoteMealAutoBolusEnabled)
+                        Picker("Remote Meal Bolus", selection: $state.remoteMealBolusMode) {
+                            ForEach(RemoteMealBolusMode.allCases) { mode in
+                                Text(mode.displayName).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
                     }
                 ).listRowBackground(Color.chart)
 

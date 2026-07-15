@@ -4,13 +4,13 @@ extension RemoteControlConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var units: GlucoseUnits = .mgdL
         @Published var isTrioRemoteControlEnabled: Bool = false
-        @Published var isRemoteMealAutoBolusEnabled: Bool = false
+        @Published var remoteMealBolusMode: RemoteMealBolusMode = .off
         @Published var sharedSecret: String = ""
 
         override func subscribe() {
             units = settingsManager.settings.units
             isTrioRemoteControlEnabled = UserDefaults.standard.bool(forKey: "isTrioRemoteControlEnabled")
-            isRemoteMealAutoBolusEnabled = UserDefaults.standard.bool(forKey: "isRemoteMealAutoBolusEnabled")
+            remoteMealBolusMode = RemoteMealBolusMode.current()
             sharedSecret = UserDefaults.standard.string(forKey: "trioRemoteControlSharedSecret") ?? generateInitialSharedSecret()
 
             $isTrioRemoteControlEnabled
@@ -20,10 +20,10 @@ extension RemoteControlConfig {
                 }
                 .store(in: &lifetime)
 
-            $isRemoteMealAutoBolusEnabled
+            $remoteMealBolusMode
                 .receive(on: DispatchQueue.main)
                 .sink { value in
-                    UserDefaults.standard.set(value, forKey: "isRemoteMealAutoBolusEnabled")
+                    UserDefaults.standard.set(value.rawValue, forKey: RemoteMealBolusMode.storageKey)
                 }
                 .store(in: &lifetime)
 

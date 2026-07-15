@@ -135,3 +135,42 @@ extension TrioRemoteControl {
         }
     }
 }
+
+/// How Trio reacts to a remote meal that requests Trio's recommended bolus.
+enum RemoteMealBolusMode: String, CaseIterable, Identifiable {
+    /// No automatic bolus. The meal is stored; a recommended-bolus request is acknowledged with a note.
+    case off
+    /// Trio computes the recommended bolus and sends it back to Loop Follow for the caregiver to review and
+    /// confirm. Trio does not dose on its own.
+    case requireReview
+    /// Trio computes the recommended bolus and enacts it directly through its own bolus calculator and
+    /// safety limits.
+    case auto
+
+    var id: String { rawValue }
+
+    /// UserDefaults key holding the raw value.
+    static let storageKey = "remoteMealBolusMode"
+
+    /// Legacy boolean key; `true` meant auto-bolus was enabled.
+    private static let legacyEnabledKey = "isRemoteMealAutoBolusEnabled"
+
+    /// The configured mode, migrating the legacy boolean the first time no explicit mode has been stored.
+    static func current(from defaults: UserDefaults = .standard) -> RemoteMealBolusMode {
+        if let raw = defaults.string(forKey: storageKey), let mode = RemoteMealBolusMode(rawValue: raw) {
+            return mode
+        }
+        return defaults.bool(forKey: legacyEnabledKey) ? .auto : .off
+    }
+
+    var displayName: String {
+        switch self {
+        case .off:
+            return String(localized: "Off")
+        case .requireReview:
+            return String(localized: "Require Review")
+        case .auto:
+            return String(localized: "Auto")
+        }
+    }
+}
