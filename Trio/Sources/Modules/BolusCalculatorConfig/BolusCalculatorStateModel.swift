@@ -4,6 +4,7 @@ extension BolusCalculatorConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var units: GlucoseUnits = .mgdL
         @Published var overrideFactor: Decimal = 0
+        @Published var prefillRecommendedBolus: Bool = false
         @Published var fattyMeals: Bool = false
         @Published var fattyMealFactor: Decimal = 0
         @Published var sweetMeals: Bool = false
@@ -15,6 +16,7 @@ extension BolusCalculatorConfig {
             units = settingsManager.settings.units
 
             subscribeSetting(\.overrideFactor, on: $overrideFactor) { overrideFactor = $0 }
+            subscribeSetting(\.prefillRecommendedBolus, on: $prefillRecommendedBolus) { prefillRecommendedBolus = $0 }
             subscribeSetting(\.fattyMeals, on: $fattyMeals) { fattyMeals = $0 }
             subscribeSetting(\.displayPresets, on: $displayPresets) { displayPresets = $0 }
             subscribeSetting(\.fattyMealFactor, on: $fattyMealFactor) { fattyMealFactor = $0 }

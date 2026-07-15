@@ -56,6 +56,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var maxProtein: Decimal = 250
     var confirmBolusFaster: Bool = false
     var overrideFactor: Decimal = 0.8
+    var prefillRecommendedBolus: Bool = false
     var fattyMeals: Bool = false
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
@@ -197,6 +198,10 @@ extension TrioSettings: Decodable {
 
         if let overrideFactor = try? container.decode(Decimal.self, forKey: .overrideFactor) {
             settings.overrideFactor = overrideFactor
+        }
+
+        if let prefillRecommendedBolus = try? container.decode(Bool.self, forKey: .prefillRecommendedBolus) {
+            settings.prefillRecommendedBolus = prefillRecommendedBolus
         }
 
         if let minuteInterval = try? container.decode(Decimal.self, forKey: .minuteInterval) {

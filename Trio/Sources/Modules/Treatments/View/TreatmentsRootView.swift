@@ -25,6 +25,7 @@ extension Treatments {
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
         @State private var showFatProteinOrderBanner = false
+        @State private var bolusAmountEdited = false
 
         private enum Config {
             static let dividerHeight: CGFloat = 2
@@ -202,6 +203,18 @@ extension Treatments {
             }
         }
 
+        /// Prefills the bolus field with the current recommendation until the user
+        /// has entered an amount themselves. Never runs while the field is focused.
+        private func applyBolusPrefill() {
+            guard state.prefillRecommendedBolus,
+                  !bolusAmountEdited,
+                  !state.externalInsulin,
+                  focusedField != .bolus,
+                  state.amount != state.insulinCalculated
+            else { return }
+            state.amount = state.insulinCalculated
+        }
+
         var body: some View {
             ZStack(alignment: .center) {
                 VStack {
@@ -370,6 +383,11 @@ extension Treatments {
                                     unitsText: String(localized: "U", comment: "Units for bolus amount")
                                 ).focused($focusedField, equals: .bolus)
                                     .onChange(of: state.amount) {
+                                        // Only a change made while the field is focused is a user edit;
+                                        // programmatic prefill never runs while the field is focused.
+                                        if focusedField == .bolus {
+                                            bolusAmountEdited = true
+                                        }
                                         Task {
                                             await state.updateForecasts()
                                         }
@@ -430,6 +448,16 @@ extension Treatments {
                     if PropertyPersistentFlags.shared.hasSeenFatProteinOrderChange != true {
                         showFatProteinOrderBanner = true
                     }
+                }
+            }
+            .onChange(of: state.insulinCalculated) {
+                applyBolusPrefill()
+            }
+            .onChange(of: focusedField) {
+                // Catch up on a recommendation that changed while the bolus field
+                // was focused (prefill never mutates the field under the cursor).
+                if focusedField != .bolus {
+                    applyBolusPrefill()
                 }
             }
             .onDisappear {
