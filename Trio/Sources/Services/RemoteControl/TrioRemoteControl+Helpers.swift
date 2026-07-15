@@ -23,7 +23,8 @@ extension TrioRemoteControl {
         _ message: String,
         payload: CommandPayload,
         customNotificationMessage: String? = nil,
-        uploadNote: Bool = false
+        uploadNote: Bool = false,
+        recommendedBolus: Decimal? = nil
     ) async {
         debug(.remoteControl, message)
 
@@ -36,7 +37,8 @@ extension TrioRemoteControl {
                 to: returnInfo,
                 commandType: payload.commandType,
                 success: true,
-                message: customNotificationMessage ?? "Command successful"
+                message: customNotificationMessage ?? "Command successful",
+                recommendedBolus: recommendedBolus
             )
         }
     }

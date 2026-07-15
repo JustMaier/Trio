@@ -3,6 +3,10 @@ import Foundation
 class RemoteNotificationResponseManager {
     static let shared = RemoteNotificationResponseManager()
 
+    /// Notification category telling Loop Follow to surface a "Review" action for a recommended bolus.
+    /// Must match the category Loop Follow registers.
+    static let recommendedBolusCategoryIdentifier = "TRIO_RECOMMENDED_BOLUS"
+
     private init() {}
 
     struct NotificationPayload: Encodable {
@@ -10,18 +14,24 @@ class RemoteNotificationResponseManager {
         let commandStatus: String
         let commandType: String
         let timestamp: TimeInterval
+        /// Present only for a "review before dosing" meal response; carries the amount for Loop Follow to
+        /// pre-fill. Omitted (encodeIfPresent) for every other command, so existing responses are unchanged.
+        let recommendedBolus: Decimal?
 
         enum CodingKeys: String, CodingKey {
             case aps
             case commandStatus = "command_status"
             case commandType = "command_type"
             case timestamp
+            case recommendedBolus = "recommended_bolus"
         }
     }
 
     struct APSPayload: Encodable {
         let alert: Alert
         let sound: String = "default"
+        /// Notification category, set only when a "Review" action should appear. Omitted otherwise.
+        let category: String?
     }
 
     struct Alert: Encodable {
@@ -33,7 +43,8 @@ class RemoteNotificationResponseManager {
         to returnInfo: CommandPayload.ReturnNotificationInfo?,
         commandType: TrioRemoteControl.CommandType,
         success: Bool,
-        message: String
+        message: String,
+        recommendedBolus: Decimal? = nil
     ) async {
         guard let returnInfo = returnInfo,
               !returnInfo.deviceToken.isEmpty
@@ -47,11 +58,13 @@ class RemoteNotificationResponseManager {
                 alert: Alert(
                     title: success ? "Command Successful" : "Command Failed",
                     body: message
-                )
+                ),
+                category: recommendedBolus != nil ? Self.recommendedBolusCategoryIdentifier : nil
             ),
             commandStatus: success ? "success" : "failed",
             commandType: commandType.rawValue,
-            timestamp: Date().timeIntervalSince1970
+            timestamp: Date().timeIntervalSince1970,
+            recommendedBolus: recommendedBolus
         )
 
         await sendPushNotification(

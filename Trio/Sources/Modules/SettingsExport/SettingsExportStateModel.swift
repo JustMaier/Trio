@@ -735,12 +735,11 @@ extension SettingsExport {
                     name: String(localized: "Enable Remote Control"),
                     value: isRemoteControlEnabled ? String(localized: "Enabled") : String(localized: "Disabled")
                 )
-                let isRemoteMealAutoBolusEnabled = UserDefaults.standard.bool(forKey: "isRemoteMealAutoBolusEnabled")
                 addSetting(
                     category: featuresCategory,
                     subcategory: remoteControlSubcategory,
-                    name: String(localized: "Auto-bolus for Remote Meals"),
-                    value: isRemoteMealAutoBolusEnabled ? String(localized: "Enabled") : String(localized: "Disabled")
+                    name: String(localized: "Remote Meal Bolus"),
+                    value: RemoteMealBolusMode.current().displayName
                 )
 
                 // Trio Personalization subcategory - User Interface
