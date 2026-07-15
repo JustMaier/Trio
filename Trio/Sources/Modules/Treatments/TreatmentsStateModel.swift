@@ -66,6 +66,7 @@ extension Treatments {
         var insulinCalculated: Decimal = 0
         var fraction: Decimal = 0
         var basal: Decimal = 0
+        var prefillRecommendedBolus: Bool = false
         var fattyMeals: Bool = false
         var fattyMealFactor: Decimal = 0
         var useFattyMealCorrectionFactor: Bool = false
@@ -291,6 +292,7 @@ extension Treatments {
         @MainActor private func setupSettings() async {
             units = settingsManager.settings.units
             fraction = settings.settings.overrideFactor
+            prefillRecommendedBolus = settings.settings.prefillRecommendedBolus
             fattyMeals = settings.settings.fattyMeals
             fattyMealFactor = settings.settings.fattyMealFactor
             sweetMeals = settings.settings.sweetMeals

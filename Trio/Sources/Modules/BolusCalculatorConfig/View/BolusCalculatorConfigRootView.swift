@@ -86,6 +86,35 @@ extension BolusCalculatorConfig {
                 )
 
                 SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.prefillRecommendedBolus,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Prefill Recommended Bolus")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Prefill Recommended Bolus"),
+                    miniHint: String(localized: "Automatically fill the bolus field with the recommended amount."),
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "When enabled, the bolus field in the treatment view is automatically filled with the recommended bolus as it is calculated, instead of requiring a tap on the recommendation to accept it."
+                        )
+                        Text(
+                            "The prefilled amount stops updating as soon as you enter a bolus amount yourself, so a manually entered amount is never overwritten. It is also not applied while logging external insulin."
+                        )
+                        Text(
+                            "Warning: With this setting enabled, a mistyped carb entry immediately becomes a pre-filled bolus amount. Always review the bolus amount before delivering."
+                        ).bold()
+                    }
+                )
+
+                SettingInputSection(
                     decimalValue: $state.fattyMealFactor,
                     booleanValue: $state.fattyMeals,
                     shouldDisplayHint: $shouldDisplayHint,
